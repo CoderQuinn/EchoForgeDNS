@@ -77,7 +77,7 @@ final class DNSDatagramHandler: ChannelInboundHandler {
 }
 
 // DNSDatagramHandler intentionally does not declare Sendable conformance.
-// 
+//
 // Do NOT mark DNSDatagramHandler as @unchecked Sendable, because it holds a reference
 // to DNSRouter, which may not be fully thread-safe or Sendable. All access to the handler
 // and its router must remain confined to the channel's EventLoop to ensure safety.
