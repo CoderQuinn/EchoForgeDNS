@@ -83,6 +83,3 @@ final class DNSDatagramHandler: ChannelInboundHandler {
 // As a result, DNSDatagramHandler instances are never shared across threads, and all accesses occur on the EventLoop thread.
 extension DNSDatagramHandler: @unchecked Sendable {}
 
-// Also mark ChannelHandlerContext as unchecked Sendable to avoid warnings
-// when scheduling eventLoop.execute closures that reference the context.
-extension ChannelHandlerContext: @unchecked Sendable {}
