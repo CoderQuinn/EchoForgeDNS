@@ -2,7 +2,7 @@ import DNSClient
 import NIO
 
 // Shared test helpers for building/parsing raw DNS packets used across tests.
-internal func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1) throws -> Message {
+func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1) throws -> Message {
     let allocator = ByteBufferAllocator()
     var buf = allocator.buffer(capacity: 128)
     buf.writeInteger(id, endianness: .big)
@@ -24,7 +24,7 @@ internal func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: U
     return try DNSDecoder.parse(buf)
 }
 
-internal func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 1) throws -> Message {
+func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 1) throws -> Message {
     let allocator = ByteBufferAllocator()
     var buf = allocator.buffer(capacity: 256)
     buf.writeInteger(id, endianness: .big)
