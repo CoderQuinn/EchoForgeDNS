@@ -66,7 +66,7 @@ private func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 1) th
 struct EchoForgeDNSSuite {
     /// Mock upstream resolver
     final class MockDNSResolver: DNSResolverProtocol {
-        var responses: [String: UInt32] = [:] // 存储 host -> IPv4 host byte order
+        var responses: [String: UInt32] = [:] // Stores host -> IPv4 host byte order
         func resolveMessage(forHost host: String, type _: DNSResourceType, on eventLoop: EventLoop) -> EventLoopFuture<Message> {
             // Build a raw DNS response packet and parse it using DNSDecoder
             do {
