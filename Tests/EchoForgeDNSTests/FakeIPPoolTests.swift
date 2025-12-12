@@ -64,4 +64,41 @@ struct FakeIPPoolTests {
         let afterClear = await ipPool.assign(domain: "domain4.com")
         #expect(afterClear != nil)
     }
+
+    @Test("Release returns IP to free list")
+    func releaseReturnsIPToFreeList() async throws {
+        let ipPool = FakeIPPool(cidr: "192.168.1.0/30")
+        let ip1 = await ipPool.assign(domain: "domain1.com")
+        let ip2 = await ipPool.assign(domain: "domain2.com")
+        
+        #expect(ip1 != nil)
+        #expect(ip2 != nil)
+        
+        // Pool should be exhausted
+        let exhausted = await ipPool.assign(domain: "domain3.com")
+        #expect(exhausted == nil)
+        
+        // Release one IP
+        await ipPool.release(domain: "domain1.com")
+        
+        // Should be able to allocate again
+        let ip3 = await ipPool.assign(domain: "domain3.com")
+        #expect(ip3 != nil)
+        
+        // Verify domain1.com is no longer mapped
+        if let ip1 = ip1 {
+            #expect(await ipPool.reverseLookup(ip1) == nil)
+        }
+    }
+
+    @Test("Release non-existent domain is safe")
+    func releaseNonExistentDomain() async throws {
+        let ipPool = FakeIPPool()
+        // Should not crash or cause issues
+        await ipPool.release(domain: "nonexistent.com")
+        
+        // Pool should still work normally
+        let ip = await ipPool.assign(domain: "test.com")
+        #expect(ip != nil)
+    }
 }

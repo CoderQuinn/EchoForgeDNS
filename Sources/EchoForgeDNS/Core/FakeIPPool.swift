@@ -60,14 +60,31 @@ public actor FakeIPPool {
         
         let candidate = base + offset
         guard let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) else {
-            // If IP creation failed, return the offset to the free list
-            freeOffsets.append(offset)
+            // If IP creation failed, skip this offset and try the next one
+            // This prevents infinite loops with invalid offsets
             return nil
         }
         
         domainToIp[domain] = ip
         ipToDomain[ip] = domain
         return ip
+    }
+    
+    public func release(domain: String) {
+        guard let ip = domainToIp[domain] else {
+            return
+        }
+        
+        domainToIp.removeValue(forKey: domain)
+        ipToDomain.removeValue(forKey: ip)
+        
+        // Return offset to free list for reuse
+        if let ipValue = ip.uint32Value {
+            let offset = ipValue - base
+            if offset >= 1 && offset <= capacity {
+                freeOffsets.append(offset)
+            }
+        }
     }
 
     public func reverseLookup(_ ip: IPv4Address) -> String? {
