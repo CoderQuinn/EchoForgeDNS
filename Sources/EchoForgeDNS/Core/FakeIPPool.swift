@@ -21,6 +21,9 @@ public actor FakeIPPool {
     private var freeOffsets: [UInt32] = []
     // Track next unallocated offset for initial allocations
     private var nextOffset: UInt32 = 1
+    
+    // Maximum attempts to allocate an IP before giving up
+    private static let maxAllocationAttempts = 10
 
     public init(cidr: String = "198.18.0.0/16") {
         let start: UInt32
@@ -46,12 +49,13 @@ public actor FakeIPPool {
         }
 
         // Try to allocate an IP, retrying up to a reasonable limit if IP creation fails
-        let maxAttempts = 10
-        for _ in 0..<maxAttempts {
+        for _ in 0..<Self.maxAllocationAttempts {
             // O(1) allocation: try free list first, then allocate from nextOffset
             let offset: UInt32
+            let fromFreeList: Bool
             if let freedOffset = freeOffsets.popLast() {
                 offset = freedOffset
+                fromFreeList = true
             } else {
                 // Check if we have capacity for new allocation
                 guard nextOffset <= capacity else {
@@ -59,16 +63,22 @@ public actor FakeIPPool {
                 }
                 offset = nextOffset
                 nextOffset += 1
+                fromFreeList = false
             }
             
             let candidate = base + offset
-            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)),
-               ipToDomain[ip] == nil {
-                domainToIp[domain] = ip
-                ipToDomain[ip] = domain
-                return ip
+            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) {
+                if ipToDomain[ip] == nil {
+                    domainToIp[domain] = ip
+                    ipToDomain[ip] = domain
+                    return ip
+                } else if fromFreeList {
+                    // Free list corruption detected: offset was in free list but IP is still assigned
+                    // This should not happen in normal operation
+                    continue
+                }
             }
-            // If IP creation failed or IP already assigned, continue to try the next offset
+            // If IP creation failed, continue to try the next offset
         }
         
         // Failed to allocate after max attempts
@@ -87,7 +97,7 @@ public actor FakeIPPool {
         if let ipValue = ip.uint32Value {
             let offset = ipValue - base
             // Only add to free list if it's a valid offset that was actually allocated
-            if offset >= 1 && offset < nextOffset && offset <= capacity {
+            if offset >= 1 && offset < nextOffset {
                 freeOffsets.append(offset)
             }
         }
