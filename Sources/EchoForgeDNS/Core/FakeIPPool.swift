@@ -37,6 +37,10 @@ public actor FakeIPPool {
         offset = 1
     }
 
+    private func advanceOffset() {
+        offset = ((offset % capacity) + 1)
+    }
+
     public func assign(domain: String) -> IPv4Address? {
         if let existing = domainToIp[domain] {
             return existing
@@ -50,7 +54,7 @@ public actor FakeIPPool {
         for _ in 0 ..< Int(capacity) {
             let candidate = base + offset
             // advance offset within 1..capacity (skip 0 to avoid network address)
-            offset = ((offset % capacity) + 1)
+            advanceOffset()
 
             if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) {
                 if ipToDomain[ip] == nil {
@@ -72,6 +76,6 @@ public actor FakeIPPool {
     public func clear() {
         ipToDomain.removeAll()
         domainToIp.removeAll()
-        offset = ((offset % capacity) + 1)
+        advanceOffset()
     }
 }
