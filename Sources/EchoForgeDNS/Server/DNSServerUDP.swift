@@ -15,10 +15,10 @@ public final class DNSServerUDP {
     private let listenPort: UInt16 = 53
     private var udpChannel: Channel?
 
-    public init(group: EventLoopGroup, upstreamHost: String = "8.8.8.8", upstreamPort: UInt16 = 53) {
+    public init(group: EventLoopGroup, upstreamHost: String = "8.8.8.8", upstreamPort: UInt16 = 53) throws {
         self.group = group
         // Create DNSClientAdapter (EventLoop-driven) and pass it to router.
-        let upstreamAdapter = try? DNSClientAdapter(group: group, upstreamHost: upstreamHost, upstreamPort: upstreamPort)
+        let upstreamAdapter = try DNSClientAdapter(group: group, upstreamHost: upstreamHost, upstreamPort: upstreamPort)
         router = DNSRouter(upstream: upstreamAdapter, ipPool: FakeIPPool())
     }
 
