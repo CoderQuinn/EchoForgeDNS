@@ -13,10 +13,14 @@ import NIOTransportServices
 public actor FakeIPPool {
     private let base: UInt32
     private let capacity: UInt32
-    private var offset: UInt32 = 0
-
+    
     private var ipToDomain: [IPv4Address: String] = [:]
     private var domainToIp: [String: IPv4Address] = [:]
+    
+    // Free list for O(1) allocation: tracks released IP offsets
+    private var freeOffsets: [UInt32] = []
+    // Track next unallocated offset for initial allocations
+    private var nextOffset: UInt32 = 1
 
     public init(cidr: String = "198.18.0.0/16") {
         let start: UInt32
@@ -34,7 +38,6 @@ public actor FakeIPPool {
         let totalHosts = UInt64(1) << UInt64(hostBits)
         let hostsMinusTwo = totalHosts > 2 ? totalHosts - 2 : 0
         capacity = UInt32(min(hostsMinusTwo, UInt64(UInt32.max)))
-        offset = 1
     }
 
     public func assign(domain: String) -> IPv4Address? {
@@ -42,24 +45,29 @@ public actor FakeIPPool {
             return existing
         }
 
-        // A temp soulution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
-        // We'll probe up to `capacity` candidates starting from `offset`.
-        // TODO: use LRU
-        guard capacity > 1 else { return nil }
-
-        for _ in 0 ..< Int(capacity) {
-            let candidate = base + offset
-            // advance offset within 1..capacity (skip 0 to avoid network address)
-            offset = ((offset % capacity) + 1)
-            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)), ipToDomain[ip] == nil {
-                domainToIp[domain] = ip
-                ipToDomain[ip] = domain
-                return ip
+        // O(1) allocation: try free list first, then allocate from nextOffset
+        let offset: UInt32
+        if let freedOffset = freeOffsets.popLast() {
+            offset = freedOffset
+        } else {
+            // Check if we have capacity for new allocation
+            guard nextOffset <= capacity else {
+                return nil
             }
+            offset = nextOffset
+            nextOffset += 1
         }
-
-        // No free IP found
-        return nil
+        
+        let candidate = base + offset
+        guard let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) else {
+            // If IP creation failed, return the offset to the free list
+            freeOffsets.append(offset)
+            return nil
+        }
+        
+        domainToIp[domain] = ip
+        ipToDomain[ip] = domain
+        return ip
     }
 
     public func reverseLookup(_ ip: IPv4Address) -> String? {
@@ -69,6 +77,7 @@ public actor FakeIPPool {
     public func clear() {
         ipToDomain.removeAll()
         domainToIp.removeAll()
-        offset = ((offset % capacity) + 1)
+        freeOffsets.removeAll()
+        nextOffset = 1
     }
 }
