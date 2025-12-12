@@ -16,7 +16,7 @@ Add EchoForgeDNS to your Package.swift dependencies:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/EchoForgeDNS.git", from: "0.1.0")
+    .package(url: "https://github.com/<your-actual-org-or-username>/EchoForgeDNS.git", from: "0.1.0")
 ]
 ```
 
