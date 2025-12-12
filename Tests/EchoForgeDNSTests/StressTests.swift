@@ -5,29 +5,6 @@ import Network
 import NIO
 import Testing
 
-// Duplicate helper for building raw DNS packets used in tests.
-private func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1) throws -> Message {
-    let allocator = ByteBufferAllocator()
-    var buf = allocator.buffer(capacity: 128)
-    buf.writeInteger(id, endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-
-    for label in domain.split(separator: ".") {
-        let bytes = Array(label.utf8)
-        buf.writeInteger(UInt8(bytes.count))
-        buf.writeBytes(bytes)
-    }
-    buf.writeInteger(UInt8(0))
-    buf.writeInteger(type.rawValue, endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-
-    return try DNSDecoder.parse(buf)
-}
-
 @Suite("Stress")
 struct StressTests {
     /// Sequential stress test: issue many queries on a single event loop.

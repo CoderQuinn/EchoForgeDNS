@@ -5,19 +5,20 @@
 //  Created by MagicianQuinn on 2025/12/11.
 //
 
-import DNSClient
 import Foundation
 import Network
 import NIO
+import DNSClient
 
 public final class DNSRouter: @unchecked Sendable {
     public let ipPool: FakeIPPool
     private let upstream: DNSResolverProtocol?
-    private let ttl = 300
+    private let ttl: Int
 
-    public init(upstream: DNSResolverProtocol? = nil, ipPool: FakeIPPool) {
+    public init(upstream: DNSResolverProtocol? = nil, ipPool: FakeIPPool, ttl:Int = 300) {
         self.upstream = upstream
         self.ipPool = ipPool
+        self.ttl = ttl
     }
 
     public func handleInboundFuture(_ message: Message, on eventLoop: EventLoop) -> EventLoopFuture<Message> {

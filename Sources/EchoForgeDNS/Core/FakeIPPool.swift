@@ -9,7 +9,7 @@ import Foundation
 import Network
 import NIOTransportServices
 
-// support ipV4, TODO: implement IPv6
+// support IPv4, TODO: implement IPv6
 public actor FakeIPPool {
     private let base: UInt32
     private let capacity: UInt32
@@ -42,18 +42,16 @@ public actor FakeIPPool {
             return existing
         }
 
-        // Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
+        // A temp soulution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
         // We'll probe up to `capacity` candidates starting from `offset`.
-        // TO: use LRU
+        // TODO: use LRU
         guard capacity > 1 else { return nil }
 
         for _ in 0 ..< Int(capacity) {
             let candidate = base + offset
             // advance offset within 1..capacity (skip 0 to avoid network address)
             offset = ((offset % capacity) + 1)
-
-            let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate))!
-            if ipToDomain[ip] == nil {
+            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)), ipToDomain[ip] == nil {
                 domainToIp[domain] = ip
                 ipToDomain[ip] = domain
                 return ip
