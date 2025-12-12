@@ -4,7 +4,7 @@ import NIO
 /// Helpers to build raw DNS packets for tests and parse them via DNSDecoder.parse
 
 /// Creates a DNS query message for testing
-func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1) throws -> Message {
+internal func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1) throws -> Message {
     let allocator = ByteBufferAllocator()
     var buf = allocator.buffer(capacity: 128)
     buf.writeInteger(id, endianness: .big)
@@ -27,7 +27,7 @@ func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 1
 }
 
 /// Creates a DNS response message for testing
-func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 1) throws -> Message {
+internal func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 1) throws -> Message {
     let allocator = ByteBufferAllocator()
     var buf = allocator.buffer(capacity: 256)
     buf.writeInteger(id, endianness: .big)
