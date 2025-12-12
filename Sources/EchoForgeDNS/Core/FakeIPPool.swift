@@ -62,12 +62,13 @@ public actor FakeIPPool {
             }
             
             let candidate = base + offset
-            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) {
+            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)),
+               ipToDomain[ip] == nil {
                 domainToIp[domain] = ip
                 ipToDomain[ip] = domain
                 return ip
             }
-            // If IP creation failed, continue to try the next offset
+            // If IP creation failed or IP already assigned, continue to try the next offset
         }
         
         // Failed to allocate after max attempts
@@ -85,7 +86,8 @@ public actor FakeIPPool {
         // Return offset to free list for reuse
         if let ipValue = ip.uint32Value {
             let offset = ipValue - base
-            if offset >= 1 && offset <= capacity {
+            // Only add to free list if it's a valid offset that was actually allocated
+            if offset >= 1 && offset < nextOffset && offset <= capacity {
                 freeOffsets.append(offset)
             }
         }
