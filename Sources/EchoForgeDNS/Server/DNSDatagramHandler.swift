@@ -83,4 +83,4 @@ final class DNSDatagramHandler: ChannelInboundHandler {
 // and its router must remain confined to the channel's EventLoop to ensure safety.
 // Also mark ChannelHandlerContext as unchecked Sendable to avoid warnings
 // when scheduling eventLoop.execute closures that reference the context.
-extension ChannelHandlerContext: @unchecked Sendable {}
+// Removed: extension ChannelHandlerContext: @unchecked Sendable {}
