@@ -32,7 +32,7 @@ struct EchoForgeDNSSuite {
         let response = try await router.handleInboundFuture(message, on: eventLoop).get()
         #expect(response.answers.count == 1)
         if case let .a(record)? = response.answers.first {
-            let assignedIP = await ipPool.assign(domain: "local.com")
+            let assignedIP = ipPool.assign(domain: "local.com")
             #expect(assignedIP != nil)
             if let assignedIP = assignedIP {
                 #expect(record.resource.address == assignedIP.uint32Value)
@@ -44,13 +44,13 @@ struct EchoForgeDNSSuite {
     }
 
     @Test("Reverse lookup returns original domain")
-    func reverseLookup() async throws {
+    func reverseLookup() throws {
         let ipPool = FakeIPPool()
         let router = DNSRouter(upstream: nil, ipPool: ipPool)
-        let assignedIP = await ipPool.assign(domain: "reverse.com")
+        let assignedIP = ipPool.assign(domain: "reverse.com")
         #expect(assignedIP != nil)
         if let assignedIP = assignedIP {
-            let domain = await router.reverseLookFakeIP(for: assignedIP)
+            let domain = router.reverseLookFakeIP(for: assignedIP)
             #expect(domain == "reverse.com")
         }
     }
@@ -129,27 +129,27 @@ struct EchoForgeDNSSuite {
     }
 
     @Test("Clearing pool removes reverse mappings")
-    func testClearFakeIPPool() async throws {
+    func testClearFakeIPPool() throws {
         let ipPool = FakeIPPool()
         let router = DNSRouter(upstream: nil, ipPool: ipPool)
-        let oldIP = await ipPool.assign(domain: "clear.com")
+        let oldIP = ipPool.assign(domain: "clear.com")
         #expect(oldIP != nil)
         if let oldIP = oldIP {
-            #expect(await router.reverseLookFakeIP(for: oldIP) == "clear.com")
+            #expect(router.reverseLookFakeIP(for: oldIP) == "clear.com")
         }
-        await router.clearFakeIPPool()
+        router.clearFakeIPPool()
 
-        _ = await ipPool.assign(domain: "clear.com1")
+        _ = ipPool.assign(domain: "clear.com1")
         // Reassigning the same domain will generate a new IP
-        let newIP = await ipPool.assign(domain: "clear.com")
+        let newIP = ipPool.assign(domain: "clear.com")
         // old mapping should be cleared
         if let oldIP = oldIP {
-            #expect(await router.reverseLookFakeIP(for: oldIP) == nil) // previous mapping has been cleared
+            #expect(router.reverseLookFakeIP(for: oldIP) == nil) // previous mapping has been cleared
         }
         // new mapping exists for the new IP
         #expect(newIP != nil)
         if let newIP = newIP {
-            #expect(await router.reverseLookFakeIP(for: newIP) == "clear.com")
+            #expect(router.reverseLookFakeIP(for: newIP) == "clear.com")
         }
     }
 }

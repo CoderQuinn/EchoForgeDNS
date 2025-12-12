@@ -7,12 +7,14 @@
 
 import Foundation
 import Network
+import NIOConcurrencyHelpers
 import NIOTransportServices
 
 // support IPv4, TODO: implement IPv6
-public actor FakeIPPool {
+public final class FakeIPPool: Sendable {
     private let base: UInt32
     private let capacity: UInt32
+    private let lock = NIOLock()
     private var offset: UInt32 = 0
 
     private var ipToDomain: [IPv4Address: String] = [:]
@@ -38,37 +40,43 @@ public actor FakeIPPool {
     }
 
     public func assign(domain: String) -> IPv4Address? {
-        if let existing = domainToIp[domain] {
-            return existing
-        }
-
-        // A temp soulution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
-        // We'll probe up to `capacity` candidates starting from `offset`.
-        // TODO: use LRU
-        guard capacity > 1 else { return nil }
-
-        for _ in 0 ..< Int(capacity) {
-            let candidate = base + offset
-            // advance offset within 1..capacity (skip 0 to avoid network address)
-            offset = ((offset % capacity) + 1)
-            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)), ipToDomain[ip] == nil {
-                domainToIp[domain] = ip
-                ipToDomain[ip] = domain
-                return ip
+        lock.withLock {
+            if let existing = domainToIp[domain] {
+                return existing
             }
-        }
 
-        // No free IP found
-        return nil
+            // A temp soulution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
+            // We'll probe up to `capacity` candidates starting from `offset`.
+            // TODO: use LRU
+            guard capacity > 1 else { return nil }
+
+            for _ in 0 ..< Int(capacity) {
+                let candidate = base + offset
+                // advance offset within 1..capacity (skip 0 to avoid network address)
+                offset = ((offset % capacity) + 1)
+                if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)), ipToDomain[ip] == nil {
+                    domainToIp[domain] = ip
+                    ipToDomain[ip] = domain
+                    return ip
+                }
+            }
+
+            // No free IP found
+            return nil
+        }
     }
 
     public func reverseLookup(_ ip: IPv4Address) -> String? {
-        return ipToDomain[ip]
+        lock.withLock {
+            ipToDomain[ip]
+        }
     }
 
     public func clear() {
-        ipToDomain.removeAll()
-        domainToIp.removeAll()
-        offset = ((offset % capacity) + 1)
+        lock.withLock {
+            ipToDomain.removeAll()
+            domainToIp.removeAll()
+            offset = ((offset % capacity) + 1)
+        }
     }
 }

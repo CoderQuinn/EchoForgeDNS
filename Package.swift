@@ -27,6 +27,7 @@ let package = Package(
             dependencies: [
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
+                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
                 .product(name: "NIOExtras", package: "swift-nio-extras"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
                 .product(name: "DNSClient", package: "DNSClient"),

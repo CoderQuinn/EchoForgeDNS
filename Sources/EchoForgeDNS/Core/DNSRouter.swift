@@ -43,25 +43,19 @@ public final class DNSRouter: @unchecked Sendable {
     }
 
     private func forwardToLocalFuture(_ message: Message, _ domain: String, _: QuestionSection, on eventLoop: EventLoop) -> EventLoopFuture<Message> {
-        let promise = eventLoop.makePromise(of: Message.self)
-        Task {
-            let fakeIP = await ipPool.assign(domain: domain)
-            guard let fakeIP else {
-                promise.succeed(DNSRouter.createEmptyResponse(from: message))
-                return
-            }
-            guard let ipVal = fakeIP.uint32Value, let question = message.questions.first else {
-                promise.succeed(DNSRouter.createEmptyResponse(from: message))
-                return
-            }
-            #if DEBUG
-                print("[DNSRouter] assigning fake A \(domain) -> \(fakeIP) (hostOrder=\(ipVal))")
-            #endif
-            let resourceRecord = ResourceRecord(domainName: question.labels, dataType: question.type.rawValue, dataClass: question.questionClass.rawValue, ttl: UInt32(ttl), resource: ARecord(address: ipVal))
-            let answer = Record.a(resourceRecord)
-            promise.succeed(DNSRouter.createResponse(from: message, with: [answer]))
+        let fakeIP = ipPool.assign(domain: domain)
+        guard let fakeIP else {
+            return eventLoop.makeSucceededFuture(DNSRouter.createEmptyResponse(from: message))
         }
-        return promise.futureResult
+        guard let ipVal = fakeIP.uint32Value, let question = message.questions.first else {
+            return eventLoop.makeSucceededFuture(DNSRouter.createEmptyResponse(from: message))
+        }
+        #if DEBUG
+            print("[DNSRouter] assigning fake A \(domain) -> \(fakeIP) (hostOrder=\(ipVal))")
+        #endif
+        let resourceRecord = ResourceRecord(domainName: question.labels, dataType: question.type.rawValue, dataClass: question.questionClass.rawValue, ttl: UInt32(ttl), resource: ARecord(address: ipVal))
+        let answer = Record.a(resourceRecord)
+        return eventLoop.makeSucceededFuture(DNSRouter.createResponse(from: message, with: [answer]))
     }
 
     private func forwardToUpstreamFuture(_ message: Message, domain: String, type: DNSResourceType, on eventLoop: EventLoop) -> EventLoopFuture<Message> {
@@ -74,16 +68,16 @@ public final class DNSRouter: @unchecked Sendable {
         }
     }
 
-    public func getFakeIP(for domain: String) async -> IPAddress {
-        return await ipPool.assign(domain: domain) ?? IPv4Address("0.0.0.0")!
+    public func getFakeIP(for domain: String) -> IPAddress {
+        return ipPool.assign(domain: domain) ?? IPv4Address("0.0.0.0")!
     }
 
-    public func reverseLookFakeIP(for ip: IPv4Address) async -> String? {
-        return await ipPool.reverseLookup(ip)
+    public func reverseLookFakeIP(for ip: IPv4Address) -> String? {
+        return ipPool.reverseLookup(ip)
     }
 
-    public func clearFakeIPPool() async {
-        await ipPool.clear()
+    public func clearFakeIPPool() {
+        ipPool.clear()
         print("Fake IP pool cleared")
     }
 

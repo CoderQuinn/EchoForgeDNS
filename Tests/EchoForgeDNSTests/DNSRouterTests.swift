@@ -19,7 +19,7 @@ struct DNSRouterTests {
     }
 
     @Test("Local A resolution from pool")
-    func localAResolution() async throws {
+    func localAResolution() throws {
         let ipPool = FakeIPPool()
         let router = DNSRouter(upstream: nil, ipPool: ipPool)
         let eventLoop = EmbeddedEventLoop()
@@ -29,7 +29,7 @@ struct DNSRouterTests {
         let response = try router.handleInboundFuture(message, on: eventLoop).wait()
         #expect(response.answers.count == 1)
         if case let .a(record)? = response.answers.first {
-            let assigned = await ipPool.assign(domain: "local.test")
+            let assigned = ipPool.assign(domain: "local.test")
             #expect(assigned != nil)
             if let assigned = assigned {
                 #expect(record.resource.address == assigned.uint32Value)

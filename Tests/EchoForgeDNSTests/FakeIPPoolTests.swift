@@ -5,19 +5,19 @@ import Testing
 @Suite("FakeIPPool")
 struct FakeIPPoolTests {
     @Test("Duplicate allocation returns same IP; reverse & clear")
-    func allocationDuplicateReverseClear() async throws {
+    func allocationDuplicateReverseClear() throws {
         let ipPool = FakeIPPool()
-        let a = await ipPool.assign(domain: "dup.com")
+        let a = ipPool.assign(domain: "dup.com")
         #expect(a != nil)
-        let b = await ipPool.assign(domain: "dup.com")
+        let b = ipPool.assign(domain: "dup.com")
         #expect(b != nil)
         #expect(a == b)
         if let a = a {
-            #expect(await ipPool.reverseLookup(a) == "dup.com")
+            #expect(ipPool.reverseLookup(a) == "dup.com")
         }
-        await ipPool.clear()
+        ipPool.clear()
         if let a = a {
-            #expect(await ipPool.reverseLookup(a) == nil)
+            #expect(ipPool.reverseLookup(a) == nil)
         }
     }
 }
