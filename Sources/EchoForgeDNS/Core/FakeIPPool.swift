@@ -52,11 +52,12 @@ public actor FakeIPPool {
             // advance offset within 1..capacity (skip 0 to avoid network address)
             offset = ((offset % capacity) + 1)
 
-            let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate))!
-            if ipToDomain[ip] == nil {
-                domainToIp[domain] = ip
-                ipToDomain[ip] = domain
-                return ip
+            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) {
+                if ipToDomain[ip] == nil {
+                    domainToIp[domain] = ip
+                    ipToDomain[ip] = domain
+                    return ip
+                }
             }
         }
 
