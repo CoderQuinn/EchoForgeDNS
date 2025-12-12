@@ -78,9 +78,9 @@ final class DNSDatagramHandler: ChannelInboundHandler {
 
 // DNSDatagramHandler intentionally does not declare Sendable conformance.
 
-// Pragmatic: mark handler as unchecked Sendable to suppress warnings about
-// capturing non-Sendable NIO types in @Sendable closures. This is safe here
-// because all Channel I/O is scheduled on the channel's EventLoop.
+// Mark handler as @unchecked Sendable to suppress warnings about capturing non-Sendable NIO types in @Sendable closures.
+// Safety: Each DNSDatagramHandler instance is tied to a single Channel, and all Channel operations are dispatched to the Channel's EventLoop.
+// As a result, DNSDatagramHandler instances are never shared across threads, and all accesses occur on the EventLoop thread.
 extension DNSDatagramHandler: @unchecked Sendable {}
 
 // Also mark ChannelHandlerContext as unchecked Sendable to avoid warnings
