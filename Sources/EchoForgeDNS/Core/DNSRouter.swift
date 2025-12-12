@@ -10,6 +10,9 @@ import Foundation
 import Network
 import NIO
 
+/// NOTE: The `upstream` property is of type `DNSResolverProtocol?`, but `DNSResolverProtocol` does not currently require `Sendable` conformance.
+/// To ensure thread safety, all implementations of `DNSResolverProtocol` **must** be `Sendable`.
+/// FIXME: Update `DNSResolverProtocol` to require `Sendable` conformance.
 public final class DNSRouter: @unchecked Sendable {
     public let ipPool: FakeIPPool
     private let upstream: DNSResolverProtocol?
