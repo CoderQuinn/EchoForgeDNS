@@ -45,7 +45,7 @@ public final class FakeIPPool: Sendable {
                 return existing
             }
 
-            // A temp soulution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
+            // A temp solution: Try to find an unassigned IP within capacity. If pool is exhausted, return nil.
             // We'll probe up to `capacity` candidates starting from `offset`.
             // TODO: use LRU
             guard capacity > 1 else { return nil }
