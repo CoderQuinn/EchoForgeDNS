@@ -3,59 +3,6 @@ import DNSClient
 import NIO
 import Testing
 
-private func makeQueryMessage(domain: String, type: DNSResourceType = .a, id: UInt16 = 10) throws -> Message {
-    let allocator = ByteBufferAllocator()
-    var buf = allocator.buffer(capacity: 128)
-    buf.writeInteger(id, endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-
-    for label in domain.split(separator: ".") {
-        let bytes = Array(label.utf8)
-        buf.writeInteger(UInt8(bytes.count))
-        buf.writeBytes(bytes)
-    }
-    buf.writeInteger(UInt8(0))
-    buf.writeInteger(type.rawValue, endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-
-    return try DNSDecoder.parse(buf)
-}
-
-private func makeResponseMessage(domain: String, ip: UInt32?, id: UInt16 = 11) throws -> Message {
-    let allocator = ByteBufferAllocator()
-    var buf = allocator.buffer(capacity: 256)
-    buf.writeInteger(id, endianness: .big)
-    buf.writeInteger(UInt16(0x8400), endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-    buf.writeInteger(ip != nil ? UInt16(1) : UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-    buf.writeInteger(UInt16(0), endianness: .big)
-
-    for label in domain.split(separator: ".") {
-        let bytes = Array(label.utf8)
-        buf.writeInteger(UInt8(bytes.count))
-        buf.writeBytes(bytes)
-    }
-    buf.writeInteger(UInt8(0))
-    buf.writeInteger(DNSResourceType.a.rawValue, endianness: .big)
-    buf.writeInteger(UInt16(1), endianness: .big)
-
-    if let ip = ip {
-        buf.writeInteger(UInt16(0xC00C), endianness: .big)
-        buf.writeInteger(UInt16(1), endianness: .big)
-        buf.writeInteger(UInt16(1), endianness: .big)
-        buf.writeInteger(UInt32(300), endianness: .big)
-        buf.writeInteger(UInt16(4), endianness: .big)
-        buf.writeInteger(ip, endianness: .big)
-    }
-
-    return try DNSDecoder.parse(buf)
-}
-
 @Suite("DNSRouter")
 struct DNSRouterTests {
     final class MockDNSResolver: DNSResolverProtocol {
