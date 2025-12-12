@@ -11,6 +11,10 @@ import Network
 import NIO
 
 public final class DNSRouter: @unchecked Sendable {
+    // DNS response code constants
+    private static let rcodeMask: UInt16 = 0x000F
+    private static let servfailRCODE: UInt16 = 2
+    
     public let ipPool: FakeIPPool
     private let upstream: DNSResolverProtocol?
     private let ttl: Int
@@ -96,9 +100,8 @@ public final class DNSRouter: @unchecked Sendable {
         responseOpt.insert(.recursionAvailable)
 
         // RCODE is the low 4 bits. If upstream provided options, inherit their RCODE bits.
-        let rcodeMask: UInt16 = 0x000F
         let upstreamBits: UInt16 = upstreamOptionsRaw ?? 0
-        responseOpt.rawValue = (responseOpt.rawValue & ~rcodeMask) | (upstreamBits & rcodeMask)
+        responseOpt.rawValue = (responseOpt.rawValue & ~DNSRouter.rcodeMask) | (upstreamBits & DNSRouter.rcodeMask)
 
         let responseHeader = DNSMessageHeader(id: message.header.id, options: responseOpt, questionCount: message.header.questionCount, answerCount: UInt16(answers.count), authorityCount: 0, additionalRecordCount: 0)
 
@@ -107,7 +110,6 @@ public final class DNSRouter: @unchecked Sendable {
 
     private static func createEmptyResponse(from message: Message) -> Message {
         // Pool exhausted or assignment failed: return SERVFAIL (RCODE=2)
-        let servfailRCODE: UInt16 = 2
-        return createResponse(from: message, with: [], upstreamOptionsRaw: servfailRCODE)
+        return createResponse(from: message, with: [], upstreamOptionsRaw: DNSRouter.servfailRCODE)
     }
 }
