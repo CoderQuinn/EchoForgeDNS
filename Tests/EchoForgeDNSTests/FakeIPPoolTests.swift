@@ -38,7 +38,7 @@ struct FakeIPPoolTests {
 
     @Test("Small CIDR pool exhaustion")
     func smallCIDRPoolExhaustion() async throws {
-        // /30 CIDR has capacity of 2 usable IPs (4 total - network - broadcast)
+        // /30 CIDR has 4 total IPs, excluding network and broadcast addresses leaves 2 usable IPs
         let ipPool = FakeIPPool(cidr: "192.168.1.0/30")
         let ip1 = await ipPool.assign(domain: "domain1.com")
         let ip2 = await ipPool.assign(domain: "domain2.com")

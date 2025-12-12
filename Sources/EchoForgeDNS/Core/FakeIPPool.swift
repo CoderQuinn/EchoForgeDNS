@@ -45,29 +45,33 @@ public actor FakeIPPool {
             return existing
         }
 
-        // O(1) allocation: try free list first, then allocate from nextOffset
-        let offset: UInt32
-        if let freedOffset = freeOffsets.popLast() {
-            offset = freedOffset
-        } else {
-            // Check if we have capacity for new allocation
-            guard nextOffset <= capacity else {
-                return nil
+        // Try to allocate an IP, retrying up to a reasonable limit if IP creation fails
+        let maxAttempts = 10
+        for _ in 0..<maxAttempts {
+            // O(1) allocation: try free list first, then allocate from nextOffset
+            let offset: UInt32
+            if let freedOffset = freeOffsets.popLast() {
+                offset = freedOffset
+            } else {
+                // Check if we have capacity for new allocation
+                guard nextOffset <= capacity else {
+                    return nil
+                }
+                offset = nextOffset
+                nextOffset += 1
             }
-            offset = nextOffset
-            nextOffset += 1
+            
+            let candidate = base + offset
+            if let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) {
+                domainToIp[domain] = ip
+                ipToDomain[ip] = domain
+                return ip
+            }
+            // If IP creation failed, continue to try the next offset
         }
         
-        let candidate = base + offset
-        guard let ip = IPv4Address(IPUtils.string(fromUInt32HostOrder: candidate)) else {
-            // If IP creation failed, skip this offset and try the next one
-            // This prevents infinite loops with invalid offsets
-            return nil
-        }
-        
-        domainToIp[domain] = ip
-        ipToDomain[ip] = domain
-        return ip
+        // Failed to allocate after max attempts
+        return nil
     }
     
     public func release(domain: String) {
