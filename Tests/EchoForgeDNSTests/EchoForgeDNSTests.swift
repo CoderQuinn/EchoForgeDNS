@@ -50,7 +50,7 @@ struct EchoForgeDNSSuite {
         let assignedIP = await ipPool.assign(domain: "reverse.com")
         #expect(assignedIP != nil)
         if let assignedIP = assignedIP {
-            let domain = await router.reverseLookFakeIP(for: assignedIP)
+            let domain = await router.reverseLookupFakeIP(for: assignedIP)
             #expect(domain == "reverse.com")
         }
     }
@@ -135,7 +135,7 @@ struct EchoForgeDNSSuite {
         let oldIP = await ipPool.assign(domain: "clear.com")
         #expect(oldIP != nil)
         if let oldIP = oldIP {
-            #expect(await router.reverseLookFakeIP(for: oldIP) == "clear.com")
+            #expect(await router.reverseLookupFakeIP(for: oldIP) == "clear.com")
         }
         await router.clearFakeIPPool()
 
@@ -144,12 +144,12 @@ struct EchoForgeDNSSuite {
         let newIP = await ipPool.assign(domain: "clear.com")
         // old mapping should be cleared
         if let oldIP = oldIP {
-            #expect(await router.reverseLookFakeIP(for: oldIP) == nil) // previous mapping has been cleared
+            #expect(await router.reverseLookupFakeIP(for: oldIP) == nil) // previous mapping has been cleared
         }
         // new mapping exists for the new IP
         #expect(newIP != nil)
         if let newIP = newIP {
-            #expect(await router.reverseLookFakeIP(for: newIP) == "clear.com")
+            #expect(await router.reverseLookupFakeIP(for: newIP) == "clear.com")
         }
     }
 }

@@ -75,7 +75,7 @@ public final class DNSRouter: @unchecked Sendable {
         return await ipPool.assign(domain: domain) ?? IPv4Address("0.0.0.0")!
     }
 
-    public func reverseLookFakeIP(for ip: IPv4Address) async -> String? {
+    public func reverseLookupFakeIP(for ip: IPv4Address) async -> String? {
         return await ipPool.reverseLookup(ip)
     }
 
