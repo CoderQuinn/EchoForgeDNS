@@ -9,7 +9,7 @@ import Foundation
 import Network
 import NIOTransportServices
 
-// support ipV4, TODO: implement IPv6
+// support IPv4, TODO: implement IPv6
 public actor FakeIPPool {
     private let base: UInt32
     private let capacity: UInt32
