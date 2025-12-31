@@ -1,47 +1,77 @@
+
 # EchoForgeDNS
 
-EchoForgeDNS is a lightweight, embeddable DNS component written in Swift.
-This project is intended as a component inside larger networking tools — for example, to intercept and rewrite A-records for selected domains while leaving other DNS traffic to normal resolvers.
+![Swift](https://img.shields.io/badge/Swift-6.1-orange?logo=swift)
+![Platform](https://img.shields.io/badge/Platform-iOS%2013%2B%20%7C%20macOS%2011%2B-blue)
+
+**EchoForgeDNS** is a lightweight, embeddable DNS component written in Swift.
+It is designed for use in larger networking tools, such as intercepting and rewriting A-records for selected domains while leaving other DNS traffic to normal resolvers.
+
 
 ## Features
 
-- UDP DNS handling (port 53)
-- Fake-IP pool using the RFC 6890 reserved range `198.18.0.0/16`
-- Pluggable upstream resolver (protocol `DNSResolverProtocol`) so you can inject mocks in tests or adapt to different DNS clients
-- Built with SwiftNIO for non-blocking performance
+- **UDP DNS** handling (port 53)
+- **Fake-IP pool** using the RFC 6890 reserved range `198.18.0.0/16`
+- **Pluggable upstream resolver** (`DNSResolverProtocol`) for easy testing and adaptation
+- **SwiftNIO** for non-blocking performance
+
 
 ## Installation
 
-Add EchoForgeDNS to your Package.swift dependencies:
+Add **EchoForgeDNS** to your `Package.swift` dependencies:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<your-actual-org-or-username>/EchoForgeDNS.git", from: "0.1.0")
+    .package(url: "https://github.com/CoderQuinn/EchoForgeDNS.git", from: "0.2.0")
 ]
 ```
 
-Then add the package target where you need it.
+Then add `EchoForgeDNS` to your target dependencies:
 
-## Notes / Design choices
+```swift
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: [
+            .product(name: "EchoForgeDNS", package: "EchoForgeDNS")
+        ]
+    ),
+]
+```
+
+
+## Usage Example
+
+```swift
+import EchoForgeDNS
+
+// Example: Initialize DNS service (see documentation for details)
+let dnsService = DNSService(/* configuration */)
+dnsService.start()
+```
+
+## Design Notes
 
 - Tests avoid constructing internal types from the `DNSClient` dependency; instead, they build raw DNS packets and parse them with `DNSDecoder` to produce `Message` instances. This keeps tests resilient to access-control changes in the dependency.
 - The Fake-IP pool intentionally uses `198.18.0.0/16` (RFC 6890 reserved block) to avoid colliding with public IPv4 space.
 
-## TODO
+
+## Roadmap / TODO
 
 - [ ] TCP, DoT (DNS over TLS), DoH (DNS over HTTPS)
 - [ ] IPv6 support for fake addresses
 - [ ] LRU recycling algorithm for Fake-IP reuse
-- [ ] Built-in caching with TTL awareness
+- [x] Built-in caching with TTL awareness
+
 
 ## Contributing
 
-Patches, tests, and documentation improvements are welcome — open a PR against this repository.
+Patches, tests, and documentation improvements are welcome! Please open a PR against this repository.
 
 ## Credits
 
 - SwiftNIO: https://github.com/apple/swift-nio
-- DNSClient: https://github.com/mikaoj/DNSClient
+- DNSClient: https://github.com/orlandos-nl/DNSClient
 
 ## License
 Apache 2.0 License.

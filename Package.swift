@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "EchoForgeDNS",
-    platforms: [.macOS(.v14), .iOS(.v17)],
+    platforms: [.iOS(.v13), .macOS(.v11)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
@@ -14,8 +14,9 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/CoderQuinn/ForgeBase.git", from: "0.0.1"),
+        .package(url: "https://github.com/CoderQuinn/ForgeLogKit.git", from: "0.1.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
-        .package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.19.0"),
         .package(url: "https://github.com/orlandos-nl/DNSClient.git", from: "2.0.0"),
     ],
@@ -25,21 +26,11 @@ let package = Package(
         .target(
             name: "EchoForgeDNS",
             dependencies: [
+                .product(name: "ForgeBase", package: "ForgeBase"),
+                .product(name: "ForgeLogKit", package: "ForgeLogKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
-                .product(name: "NIOExtras", package: "swift-nio-extras"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
-                .product(name: "DNSClient", package: "DNSClient"),
-            ]
-        ),
-        .executableTarget(
-            name: "ServerRunner",
-            dependencies: ["EchoForgeDNS"]
-        ),
-        .testTarget(
-            name: "EchoForgeDNSTests",
-            dependencies: [
-                "EchoForgeDNS",
                 .product(name: "DNSClient", package: "DNSClient"),
             ]
         ),

@@ -16,17 +16,16 @@ public final class DNSClientAdapter: DNSResolverProtocol {
     public init(group: EventLoopGroup, upstreamHost: String = "8.8.8.8", upstreamPort: UInt16 = 53) throws {
         self.group = group
         let config = try SocketAddress(ipAddress: upstreamHost, port: Int(upstreamPort))
-        // Start connect; store the future
         clientFuture = DNSClient.connect(on: group, config: [config])
     }
 
-    public func resolveMessage(forHost host: String, type: DNSResourceType, on eventLoop: EventLoop) -> EventLoopFuture<Message> {
+    public func resolveMessage(_ host: String, _ type: DNSResourceType, _ eventLoop: any EventLoop) -> EventLoopFuture<Message> {
         guard let clientFuture = clientFuture else {
             return eventLoop.makeFailedFuture(NSError(domain: "DNSClientAdapter", code: 1, userInfo: [NSLocalizedDescriptionKey: "DNS client not initialized"]))
         }
 
         return clientFuture.flatMap { client in
             client.sendQuery(forHost: host, type: type)
-        }
+        }.hop(to: eventLoop)
     }
 }
