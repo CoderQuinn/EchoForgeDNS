@@ -9,10 +9,10 @@
 /// LRU eviction will be implemented together with SOCKS5 / UDP NAT,
 /// where "usage" semantics are well-defined.
 
+import ForgeBase
 import Foundation
 import Network
 import NIO
-import ForgeBase
 
 /// Fake IPv4 pool for DNS interception.
 /// Convention:

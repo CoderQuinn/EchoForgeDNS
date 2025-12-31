@@ -6,10 +6,10 @@
 //
 
 import DNSClient
+import ForgeBase
 import Foundation
 import Network
 import NIO
-import ForgeBase
 
 public protocol DNSResolverProtocol {
     func resolveMessage(
@@ -47,8 +47,6 @@ public final class DNSService {
 
         cache = DNSCache(eventLoop: eventLoop)
         ipPool = FakeIPPool(on: eventLoop)
-
-
     }
 
     // MARK: - Upstream
@@ -314,8 +312,7 @@ public final class DNSService {
         }
 
         let realIPs: [IPv4Address] = upstreamMsg.answers.compactMap {
-            if case let .a(rr) = $0, let ip = FBIPv4(beValue: rr.resource.address).asNetworkIPv4Address
-            {
+            if case let .a(rr) = $0, let ip = FBIPv4(beValue: rr.resource.address).asNetworkIPv4Address {
                 return ip
             }
             return nil
@@ -349,8 +346,6 @@ public final class DNSService {
                 }
             }
         }
-
-
     }
 
     public func stopSweep() {
