@@ -33,6 +33,6 @@ let package = Package(
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
                 .product(name: "DNSClient", package: "DNSClient"),
             ]
-        )
+        ),
     ]
 )
